@@ -4,18 +4,18 @@ import { NotificationService, Toast } from '../../../core/services/notification.
 import { animate, style, transition, trigger, state } from '@angular/animations';
 
 @Component({
-    selector: 'app-toast',
-    standalone: true,
-    imports: [CommonModule],
-    animations: [
-        trigger('toastAnimation', [
-            state('void', style({ transform: 'translateY(20px)', opacity: 0 })),
-            state('*', style({ transform: 'translateY(0)', opacity: 1 })),
-            transition('void => *', animate('300ms cubic-bezier(0.19, 1, 0.22, 1)')),
-            transition('* => void', animate('200ms ease-in', style({ transform: 'translateY(10px)', opacity: 0 })))
-        ])
-    ],
-    template: `
+  selector: 'app-toast',
+  standalone: true,
+  imports: [CommonModule],
+  animations: [
+    trigger('toastAnimation', [
+      state('void', style({ transform: 'translateY(20px)', opacity: 0 })),
+      state('*', style({ transform: 'translateY(0)', opacity: 1 })),
+      transition('void => *', animate('300ms cubic-bezier(0.19, 1, 0.22, 1)')),
+      transition('* => void', animate('200ms ease-in', style({ transform: 'translateY(10px)', opacity: 0 })))
+    ])
+  ],
+  template: `
     <div class="toast-container">
       @for (toast of toasts; track toast.id) {
         <div 
@@ -23,6 +23,8 @@ import { animate, style, transition, trigger, state } from '@angular/animations'
           [ngClass]="toast.type"
           [@toastAnimation]
           (click)="remove(toast.id)"
+          (keydown.enter)="remove(toast.id)"
+          tabindex="0"
         >
           <div class="toast-icon">{{ getIcon(toast.type) }}</div>
           <div class="toast-message">{{ toast.message }}</div>
@@ -31,7 +33,7 @@ import { animate, style, transition, trigger, state } from '@angular/animations'
       }
     </div>
   `,
-    styles: [`
+  styles: [`
     .toast-container {
       position: fixed;
       bottom: 24px;
@@ -96,27 +98,27 @@ import { animate, style, transition, trigger, state } from '@angular/animations'
   `]
 })
 export class ToastComponent implements OnInit {
-    toasts: Toast[] = [];
+  toasts: Toast[] = [];
 
-    constructor(private notificationService: NotificationService) { }
+  constructor(private notificationService: NotificationService) { }
 
-    ngOnInit() {
-        this.notificationService.toasts$.subscribe(toasts => {
-            this.toasts = toasts;
-        });
+  ngOnInit() {
+    this.notificationService.toasts$.subscribe(toasts => {
+      this.toasts = toasts;
+    });
+  }
+
+  remove(id: string) {
+    this.notificationService.remove(id);
+  }
+
+  getIcon(type: string): string {
+    switch (type) {
+      case 'success': return '✅';
+      case 'error': return '❌';
+      case 'info': return 'ℹ️';
+      case 'warning': return '⚠️';
+      default: return '';
     }
-
-    remove(id: string) {
-        this.notificationService.remove(id);
-    }
-
-    getIcon(type: string): string {
-        switch (type) {
-            case 'success': return '✅';
-            case 'error': return '❌';
-            case 'info': return 'ℹ️';
-            case 'warning': return '⚠️';
-            default: return '';
-        }
-    }
+  }
 }

@@ -22,26 +22,26 @@ import { CampaignService } from '@core/services/campaign.service';
         <section class="form-section">
           <h2>Campaign Details</h2>
           <div class="form-group">
-            <label class="form-label">Title *</label>
-            <input type="text" class="form-input" formControlName="title" placeholder="e.g., Healthy Hydration Challenge" data-test-id="campaign-title-input">
+            <label class="form-label" for="title">Title *</label>
+            <input id="title" type="text" class="form-input" formControlName="title" placeholder="e.g., Healthy Hydration Challenge" data-test-id="campaign-title-input">
           </div>
           <div class="form-group">
-            <label class="form-label">Description</label>
-            <textarea class="form-input" formControlName="description" rows="3" placeholder="Describe the campaign goals..." data-test-id="campaign-description-input"></textarea>
+            <label class="form-label" for="description">Description</label>
+            <textarea id="description" class="form-input" formControlName="description" rows="3" placeholder="Describe the campaign goals..." data-test-id="campaign-description-input"></textarea>
           </div>
           <div class="form-row">
             <div class="form-group">
-              <label class="form-label">Start Date *</label>
-              <input type="date" class="form-input" formControlName="startDate" data-test-id="campaign-start-input">
+              <label class="form-label" for="startDate">Start Date *</label>
+              <input id="startDate" type="date" class="form-input" formControlName="startDate" data-test-id="campaign-start-input">
             </div>
             <div class="form-group">
-              <label class="form-label">End Date *</label>
-              <input type="date" class="form-input" formControlName="endDate" data-test-id="campaign-end-input">
+              <label class="form-label" for="endDate">End Date *</label>
+              <input id="endDate" type="date" class="form-input" formControlName="endDate" data-test-id="campaign-end-input">
             </div>
           </div>
           <div class="form-group">
-            <label class="form-label">Goal Amount ($)</label>
-            <input type="number" class="form-input" formControlName="goalAmount" placeholder="1000" data-test-id="campaign-goal-input">
+            <label class="form-label" for="goalAmount">Goal Amount ($)</label>
+            <input id="goalAmount" type="number" class="form-input" formControlName="goalAmount" placeholder="1000" data-test-id="campaign-goal-input">
           </div>
         </section>
 
@@ -168,7 +168,7 @@ export class CampaignCreateComponent implements OnInit {
           }
         }
       },
-      error: (err) => {
+      error: (_err) => {
         this.error = 'Failed to load campaign';
       }
     });

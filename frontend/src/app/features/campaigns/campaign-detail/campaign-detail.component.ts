@@ -174,22 +174,22 @@ import { NotificationService } from '@core/services/notification.service';
                       
                       <form [formGroup]="pledgeForm" (ngSubmit)="onPledge()">
                         <div class="form-group mb-sm">
-                          <label class="form-label">Rate per Point ($)</label>
-                          <input type="number" step="0.01" class="form-input" formControlName="ratePerPoint" placeholder="0.10">
+                          <label class="form-label" for="ratePerPoint">Rate per Point ($)</label>
+                          <input id="ratePerPoint" type="number" step="0.01" class="form-input" formControlName="ratePerPoint" placeholder="0.10">
                         </div>
                         <div class="form-group mb-md">
-                          <label class="form-label">Maximum Cap ($) <small>(Optional)</small></label>
-                          <input type="number" step="10" class="form-input" formControlName="capAmount" placeholder="1000">
+                          <label class="form-label" for="capAmount">Maximum Cap ($) <small>(Optional)</small></label>
+                          <input id="capAmount" type="number" step="10" class="form-input" formControlName="capAmount" placeholder="1000">
                         </div>
 
                         <div class="form-group mb-sm">
-                          <label class="form-label">Inspiring Message <small>(Optional)</small></label>
-                          <textarea class="form-input" formControlName="message" rows="2" placeholder="Great job students! From: Local Business"></textarea>
+                          <label class="form-label" for="pledgeMessage">Inspiring Message <small>(Optional)</small></label>
+                          <textarea id="pledgeMessage" class="form-input" formControlName="message" rows="2" placeholder="Great job students! From: Local Business"></textarea>
                         </div>
                         
                         <div class="form-group mb-md">
-                          <label class="form-label">Ad Image URL <small>(Optional)</small></label>
-                          <input type="text" class="form-input" formControlName="adImageUrl" placeholder="https://example.com/logo.png">
+                          <label class="form-label" for="adImageUrl">Ad Image URL <small>(Optional)</small></label>
+                          <input id="adImageUrl" type="text" class="form-input" formControlName="adImageUrl" placeholder="https://example.com/logo.png">
                         </div>
 
                         <button type="submit" class="btn btn-primary btn-lg" [disabled]="pledgeForm.invalid || actionLoading">
