@@ -1,0 +1,141 @@
+// ============================================
+// HABITS FOR GOOD - DESIGN SYSTEM VARIABLES
+// Duolingo-Inspired Color Palette & Typography
+// ============================================
+
+// ---------- PRIMARY COLORS ----------
+$feather-green: #58CC02;    // Primary brand, CTAs, success
+$mask-green: #89E219;       // Hover states, lighter accents
+
+// ---------- SECONDARY COLORS ----------
+$macaw-blue: #1CB0F6;       // Information, water habits
+$cardinal-red: #FF4B4B;     // Excitement, energy
+$bee-yellow: #FFC800;       // Achievements, medals
+$fox-orange: #FF9600;       // Warmth, urgency
+$beetle-purple: #CE82FF;    // Special badges
+$humpback-blue: #2B70C9;    // Professional contexts
+
+// ---------- NEUTRAL COLORS ----------
+$eel: #4B4B4B;              // Primary text
+$wolf: #777777;             // Secondary text
+$hare: #AFAFAF;             // Disabled, borders
+$snow: #FFFFFF;             // Backgrounds
+$swan: #F7F7F7;             // Alternate backgrounds
+
+// ---------- PASTEL COLORS ----------
+$mint: #BFF199;             // Success backgrounds
+$blush: #F7C8C9;            // Love/kindness themes
+$sky: #D4F1FF;              // Information backgrounds
+$sunset: #FFE5CC;           // Evening themes
+
+// ---------- CSS CUSTOM PROPERTIES ----------
+:root {
+  // Colors
+  --color-primary: #{$feather-green};
+  --color-primary-hover: #{$mask-green};
+  --color-secondary: #{$macaw-blue};
+  --color-success: #{$feather-green};
+  --color-warning: #{$bee-yellow};
+  --color-danger: #{$cardinal-red};
+  --color-info: #{$macaw-blue};
+  
+  --color-eel: #{$eel};
+  --color-wolf: #{$wolf};
+  --color-hare: #{$hare};
+  --color-snow: #{$snow};
+  --color-swan: #{$swan};
+  
+  --color-mint: #{$mint};
+  --color-sky: #{$sky};
+  --color-bee: #{$bee-yellow};
+  --color-fox: #{$fox-orange};
+  --color-beetle: #{$beetle-purple};
+  
+  // Typography
+  --font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-size-xs: 0.75rem;   // 12px
+  --font-size-sm: 0.875rem;  // 14px
+  --font-size-base: 1rem;    // 16px
+  --font-size-lg: 1.125rem;  // 18px
+  --font-size-xl: 1.375rem;  // 22px
+  --font-size-2xl: 1.75rem;  // 28px
+  --font-size-3xl: 2.25rem;  // 36px
+  --font-size-4xl: 3rem;     // 48px
+  
+  --font-weight-regular: 400;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+  
+  --line-height-tight: 1.2;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.6;
+  
+  // Spacing
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-2xl: 48px;
+  --spacing-3xl: 64px;
+  
+  // Border Radius (everything is rounded!)
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+  --radius-pill: 9999px;
+  --radius-circle: 50%;
+  
+  // Shadows
+  --shadow-sm: 0 2px 4px rgba(75, 75, 75, 0.1);
+  --shadow-md: 0 4px 8px rgba(75, 75, 75, 0.15);
+  --shadow-lg: 0 8px 16px rgba(75, 75, 75, 0.2);
+  --shadow-xl: 0 12px 24px rgba(75, 75, 75, 0.25);
+  
+  // Transitions
+  --transition-fast: 150ms ease;
+  --transition-normal: 250ms ease;
+  --transition-slow: 350ms ease;
+  
+  // Touch targets
+  --tap-target: 44px;
+  
+  // Container widths
+  --max-width-sm: 640px;
+  --max-width-md: 768px;
+  --max-width-lg: 1024px;
+  --max-width-xl: 1280px;
+}
+
+// ---------- BREAKPOINTS ----------
+$breakpoint-mobile: 320px;
+$breakpoint-tablet: 768px;
+$breakpoint-desktop: 1024px;
+$breakpoint-wide: 1280px;
+
+// Mixins for responsive design
+@mixin mobile {
+  @media (max-width: #{$breakpoint-tablet - 1px}) {
+    @content;
+  }
+}
+
+@mixin tablet {
+  @media (min-width: #{$breakpoint-tablet}) and (max-width: #{$breakpoint-desktop - 1px}) {
+    @content;
+  }
+}
+
+@mixin desktop {
+  @media (min-width: #{$breakpoint-desktop}) {
+    @content;
+  }
+}
+
+@mixin tablet-up {
+  @media (min-width: #{$breakpoint-tablet}) {
+    @content;
+  }
+}
