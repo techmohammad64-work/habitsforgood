@@ -167,6 +167,8 @@ CREATE TABLE sponsor_pledges (
   campaign_id INTEGER REFERENCES campaigns(id) ON DELETE CASCADE,
   rate_per_point DECIMAL(5,3) NOT NULL CHECK (rate_per_point >= 0.01 AND rate_per_point <= 10.00),
   cap_amount DECIMAL(10,2),
+  message TEXT,
+  ad_image_url VARCHAR(255),
   status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'fulfilled', 'cancelled')),
   pledged_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
