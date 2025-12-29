@@ -28,7 +28,7 @@ export class HabitSubmission {
     submissionDate!: Date;
 
     @Column({ type: 'varchar', length: 20, nullable: true })
-    rating!: SubmissionRating;
+    rating!: SubmissionRating | null;
 
     @Column({ type: 'boolean', default: true })
     completed!: boolean;
