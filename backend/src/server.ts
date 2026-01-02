@@ -9,6 +9,7 @@ import { AppDataSource } from './config/database';
 import routes from './routes';
 import { errorMiddleware } from './middleware/error.middleware';
 import { SchedulerService } from './services/scheduler.service';
+// import { QuestScheduler } from './services/quest-scheduler.service';
 import { emailWorker } from './workers/email.worker';
 
 const app = express();
@@ -60,6 +61,9 @@ const startServer = async () => {
 
         // Initialize habit reminder scheduler
         schedulerService.init();
+        
+        // TODO: Re-enable quest scheduler after migration
+        // QuestScheduler.init();
 
         app.listen(PORT, () => {
             console.log(`🚀 Server running on port ${PORT}`);
@@ -74,3 +78,4 @@ const startServer = async () => {
 startServer();
 
 export default app;
+

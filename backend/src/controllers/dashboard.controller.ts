@@ -70,6 +70,9 @@ export class DashboardController {
                         displayName: student.displayName,
                         age: student.age,
                         avatarUrl: student.avatarUrl,
+                        xp: student.xp,
+                        level: student.level,
+                        rank: student.rank,
                     },
                     enrolledCampaigns: enrollments.map((e) => ({
                         ...e.campaign,

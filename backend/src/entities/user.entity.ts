@@ -36,6 +36,9 @@ export class User {
     @Column({ type: 'boolean', default: true, name: 'email_notifications_enabled' })
     emailNotificationsEnabled!: boolean;
 
+    @Column({ type: 'timestamp', nullable: true, name: 'last_login' })
+    lastLogin!: Date;
+
     @CreateDateColumn({ name: 'created_at' })
     createdAt!: Date;
 

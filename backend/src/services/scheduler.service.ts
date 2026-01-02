@@ -28,7 +28,7 @@ export class SchedulerService {
                 .innerJoinAndSelect('enrollment.student', 'student')
                 .innerJoinAndSelect('student.user', 'user')
                 .where('user.email_notifications_enabled = :enabled', { enabled: true })
-                .andWhere("EXTRACT(HOUR FROM (CURRENT_TIMESTAMP AT TIME ZONE user.timezone)) = :targetHour", { targetHour })
+                .andWhere('EXTRACT(HOUR FROM (CURRENT_TIMESTAMP AT TIME ZONE user.timezone)) = :targetHour', { targetHour })
                 .getMany();
 
             // eslint-disable-next-line no-console
@@ -60,6 +60,54 @@ export class SchedulerService {
             // eslint-disable-next-line no-console
             console.error('❌ Error in scheduler:', error);
         }
+    }
+
+    async sendCampaignNotifications(campaignId: number) {
+        const enrollmentRepo = AppDataSource.getRepository(Enrollment);
+        const results = { total: 0, success: 0, failed: 0 };
+
+        try {
+            const enrollments = await enrollmentRepo.find({
+                where: { campaignId },
+                relations: ['student', 'student.user']
+            });
+
+            results.total = enrollments.length;
+
+            for (const enrollment of enrollments) {
+                try {
+                    await emailQueue.add(
+                        'campaign-reminder',
+                        {
+                            userId: enrollment.student.user.id,
+                            studentId: enrollment.student.id,
+                            enrollmentId: enrollment.id,
+                            campaignId: enrollment.campaignId,
+                            email: enrollment.student.user.email
+                        },
+                        {
+                            attempts: 3,
+                            backoff: {
+                                type: 'exponential',
+                                delay: 2000,
+                            },
+                            removeOnComplete: true,
+                            removeOnFail: 24 * 3600 * 1000
+                        }
+                    );
+                    results.success++;
+                } catch (error) {
+                    results.failed++;
+                    // eslint-disable-next-line no-console
+                    console.error(`Failed to queue email for enrollment ${enrollment.id}:`, error);
+                }
+            }
+        } catch (error) {
+            // eslint-disable-next-line no-console
+            console.error('❌ Error in sendCampaignNotifications:', error);
+        }
+
+        return results;
     }
 }
 

@@ -7,7 +7,7 @@ import { environment } from '@env/environment';
 export interface User {
     id: string;
     email: string;
-    role: 'student' | 'admin' | 'sponsor' | 'cause';
+    role: 'student' | 'admin' | 'sponsor' | 'cause' | 'super-admin';
 }
 
 export interface AuthResponse {
@@ -19,6 +19,9 @@ export interface AuthResponse {
             id: string;
             displayName: string;
             age: number;
+            xp?: number;
+            level?: number;
+            rank?: string;
         };
         admin?: {
             id: string;

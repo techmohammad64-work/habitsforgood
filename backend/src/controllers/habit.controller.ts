@@ -8,6 +8,7 @@ import { Enrollment } from '../entities/enrollment.entity';
 import { Student } from '../entities/student.entity';
 import { AuthRequest } from '../middleware/auth.middleware';
 import { ApiError } from '../middleware/error.middleware';
+// import { checkDailyQuests, checkQuestCompletion } from './quest.controller';
 
 export class HabitController {
     private habitRepository = AppDataSource.getRepository(Habit);
@@ -175,11 +176,33 @@ export class HabitController {
             streak.lastSubmissionDate = today;
             await this.streakRepository.save(streak);
 
-            // Calculate points
+            // Calculate points using AI Assessment
+            const { XPAssessmentService } = await import('../services/xp-assessment.service');
+            const aiXP = XPAssessmentService.assessHabitSubmissionXP(habit, campaign);
+            
             const streakMultiplier = this.getStreakMultiplier(streak.currentStreak);
             const bonusMultiplier = 1.0; // TODO: Implement lottery
-            const basePoints = 10;
-            const totalPoints = Math.floor(basePoints * streakMultiplier * bonusMultiplier);
+            const totalPoints = Math.floor(aiXP * streakMultiplier * bonusMultiplier);
+
+            // Update XP and Level
+            student.xp = (student.xp || 0) + totalPoints;
+            const newLevel = Math.floor(Math.sqrt(student.xp / 100)) + 1;
+            
+            if (newLevel > (student.level || 1)) {
+                student.level = newLevel;
+                // Update Rank based on Level
+                if (newLevel >= 50) student.rank = 'S-Rank';
+                else if (newLevel >= 40) student.rank = 'A-Rank';
+                else if (newLevel >= 30) student.rank = 'B-Rank';
+                else if (newLevel >= 20) student.rank = 'C-Rank';
+                else if (newLevel >= 10) student.rank = 'D-Rank';
+                else student.rank = 'E-Rank';
+            }
+            
+            await this.studentRepository.save(student);
+
+            // TODO: Re-enable quest system after migration
+            // await checkQuestCompletion(student.id, campaignId);
 
             // Create points ledger entry
             const pointsEntry = this.pointsRepository.create({
@@ -209,6 +232,11 @@ export class HabitController {
                         bonusMultiplier,
                         total: totalPoints,
                     },
+                    levelUp: newLevel > (student.level || 1) ? {
+                        oldLevel: student.level,
+                        newLevel: newLevel,
+                        newRank: student.rank
+                    } : null
                 },
             });
         } catch (error) {

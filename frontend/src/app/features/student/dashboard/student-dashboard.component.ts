@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '@env/environment';
@@ -16,6 +16,9 @@ interface StudentDashboardData {
     displayName: string;
     age: number;
     avatarUrl?: string;
+    xp?: number;
+    level?: number;
+    rank?: string;
   };
   enrolledCampaigns: (Campaign & { streak: { currentStreak: number } })[];
   totalPoints: number;
@@ -39,15 +42,48 @@ interface StudentDashboardData {
         </div>
       } @else if (data) {
         <!-- Header -->
-        <header class="dashboard-header">
+        <header class="dashboard-header" [attr.data-rank]="data.student.rank || 'E-Rank'">
+          <!-- Particle Effects for A-Rank and above -->
+          @if (shouldShowParticles()) {
+            <div class="rank-particles">
+              @for (i of [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]; track i) {
+                <div class="particle"></div>
+              }
+            </div>
+          }
+          
           <div class="welcome-section">
-            <div class="avatar">
-              {{ getInitial(data.student.displayName) }}
+            <div class="avatar-container">
+              <div class="avatar">
+                {{ getInitial(data.student.displayName) }}
+              </div>
+              <div class="level-badge" [attr.data-rank]="data.student.rank || 'E-Rank'">
+                {{ data.student.level || 1 }}
+              </div>
             </div>
             <div class="welcome-text">
               <h1 data-test-id="dashboard-welcome">Hi, {{ data.student.displayName }}! 👋</h1>
-              <p class="text-muted">Keep up the great work building healthy habits!</p>
+              <div class="player-info">
+                <span class="rank-tag" [attr.data-rank]="data.student.rank || 'E-Rank'">
+                  {{ data.student.rank || 'E-Rank' }} Hunter
+                </span>
+                <div class="xp-container">
+                  <div class="xp-bar">
+                    <div class="xp-fill" [style.width.%]="getXPProgress(data.student.xp || 0)"></div>
+                  </div>
+                  <span class="xp-text">XP {{ data.student.xp || 0 }} / {{ getNextLevelXP(data.student.level || 1) }}</span>
+                </div>
+              </div>
             </div>
+          </div>
+          
+          <!-- Daily Quest Timer -->
+          <div class="daily-quest-timer" [class.warning]="isPenaltyWarning()">
+            <div class="timer-label">DAILY QUEST</div>
+            <div class="timer-value">{{ timeRemaining }}</div>
+            @if (isPenaltyWarning()) {
+              <div class="penalty-warning">⚠️ PENALTY WARNING</div>
+            }
           </div>
         </header>
 
@@ -169,30 +205,194 @@ interface StudentDashboardData {
     /* Header */
     .dashboard-header {
       margin-bottom: var(--spacing-xl);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--spacing-lg);
+      border-radius: var(--radius-lg);
+      background: var(--color-snow);
+      border: 1px solid transparent;
+      transition: all 0.3s ease;
+    }
+
+    /* Rank Themes */
+    .dashboard-header[data-rank="S-Rank"] {
+      background: linear-gradient(135deg, #fff9c4 0%, #fff 100%);
+      border-color: #FFD700;
+      box-shadow: 0 4px 15px rgba(255, 215, 0, 0.2);
+    }
+    .dashboard-header[data-rank="A-Rank"] {
+      background: linear-gradient(135deg, #f5f5f5 0%, #fff 100%);
+      border-color: #C0C0C0;
+      box-shadow: 0 4px 15px rgba(192, 192, 192, 0.2);
+    }
+    .dashboard-header[data-rank="B-Rank"] {
+      border-left: 4px solid #CD7F32;
+    }
+    .dashboard-header[data-rank="C-Rank"] {
+      border-left: 4px solid #9b59b6;
+    }
+    .dashboard-header[data-rank="D-Rank"] {
+      border-left: 4px solid #3498db;
+    }
+    .dashboard-header[data-rank="E-Rank"] {
+      border-left: 4px solid #95a5a6;
     }
     
     .welcome-section {
       display: flex;
       align-items: center;
-      gap: var(--spacing-md);
+      gap: var(--spacing-lg);
+    }
+
+    /* Daily Quest Timer */
+    .daily-quest-timer {
+      text-align: right;
+      padding: var(--spacing-sm) var(--spacing-md);
+      background: rgba(0, 0, 0, 0.05);
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .daily-quest-timer.warning {
+      background: rgba(231, 76, 60, 0.1);
+      border-color: #e74c3c;
+      animation: pulse 2s infinite;
+    }
+
+    .timer-label {
+      font-size: 10px;
+      font-weight: bold;
+      letter-spacing: 1px;
+      color: var(--color-wolf);
+      margin-bottom: 2px;
+    }
+
+    .timer-value {
+      font-family: monospace;
+      font-size: var(--font-size-xl);
+      font-weight: bold;
+      color: var(--color-eel);
+    }
+
+    .warning .timer-value {
+      color: #e74c3c;
+    }
+
+    .penalty-warning {
+      font-size: 10px;
+      color: #e74c3c;
+      font-weight: bold;
+      margin-top: 2px;
+      animation: blink 1s infinite;
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.4); }
+      70% { box-shadow: 0 0 0 10px rgba(231, 76, 60, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); }
+    }
+
+    @keyframes blink {
+      0% { opacity: 1; }
+      50% { opacity: 0.5; }
+      100% { opacity: 1; }
+    }
+    
+    .avatar-container {
+      position: relative;
     }
     
     .avatar {
-      width: 64px;
-      height: 64px;
+      width: 80px;
+      height: 80px;
       border-radius: var(--radius-circle);
       background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-hover) 100%);
       color: white;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: var(--font-size-2xl);
+      font-size: var(--font-size-3xl);
       font-weight: var(--font-weight-bold);
+      border: 4px solid white;
+      box-shadow: var(--shadow-md);
     }
+
+    .level-badge {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 28px;
+      height: 28px;
+      background: var(--color-eel);
+      color: white;
+      border-radius: var(--radius-circle);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: var(--font-size-sm);
+      border: 2px solid white;
+    }
+
+    .level-badge[data-rank="S-Rank"] { background: #FFD700; color: black; }
+    .level-badge[data-rank="A-Rank"] { background: #C0C0C0; color: black; }
+    .level-badge[data-rank="B-Rank"] { background: #CD7F32; }
+    .level-badge[data-rank="C-Rank"] { background: #9b59b6; }
+    .level-badge[data-rank="D-Rank"] { background: #3498db; }
+    .level-badge[data-rank="E-Rank"] { background: #95a5a6; }
     
     .welcome-text h1 {
       font-size: var(--font-size-2xl);
-      margin-bottom: 4px;
+      margin-bottom: var(--spacing-xs);
+    }
+
+    .player-info {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-xs);
+    }
+
+    .rank-tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: var(--radius-sm);
+      font-size: var(--font-size-xs);
+      font-weight: bold;
+      text-transform: uppercase;
+      width: fit-content;
+    }
+
+    .rank-tag[data-rank="S-Rank"] { background: #FFD700; color: black; }
+    .rank-tag[data-rank="A-Rank"] { background: #C0C0C0; color: black; }
+    .rank-tag[data-rank="B-Rank"] { background: #CD7F32; color: white; }
+    .rank-tag[data-rank="C-Rank"] { background: #9b59b6; color: white; }
+    .rank-tag[data-rank="D-Rank"] { background: #3498db; color: white; }
+    .rank-tag[data-rank="E-Rank"] { background: #95a5a6; color: white; }
+
+    .xp-container {
+      width: 200px;
+    }
+
+    .xp-bar {
+      height: 6px;
+      background: var(--color-hare);
+      border-radius: var(--radius-pill);
+      overflow: hidden;
+      margin-bottom: 2px;
+    }
+
+    .xp-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #3498db, #2ecc71);
+      border-radius: var(--radius-pill);
+      transition: width 0.5s ease-out;
+    }
+
+    .xp-text {
+      font-size: 10px;
+      color: var(--color-wolf);
+      font-weight: 600;
     }
     
     /* Stats */
@@ -392,14 +592,59 @@ interface StudentDashboardData {
     }
   `],
 })
-export class StudentDashboardComponent implements OnInit {
+export class StudentDashboardComponent implements OnInit, OnDestroy {
   data: StudentDashboardData | null = null;
   loading = true;
+  timeRemaining: string = '00:00:00';
+  private timerInterval: any;
 
   constructor(private http: HttpClient, public authService: AuthService) { }
 
   ngOnInit(): void {
     this.loadDashboard();
+    this.startTimer();
+  }
+
+  ngOnDestroy(): void {
+    if (this.timerInterval) {
+      clearInterval(this.timerInterval);
+    }
+  }
+
+  startTimer(): void {
+    this.updateTimer();
+    this.timerInterval = setInterval(() => {
+      this.updateTimer();
+    }, 1000);
+  }
+
+  updateTimer(): void {
+    const now = new Date();
+    const midnight = new Date();
+    midnight.setHours(24, 0, 0, 0);
+    
+    const diff = midnight.getTime() - now.getTime();
+    
+    if (diff <= 0) {
+      this.timeRemaining = '00:00:00';
+      return;
+    }
+
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+    this.timeRemaining = `${this.pad(hours)}:${this.pad(minutes)}:${this.pad(seconds)}`;
+  }
+
+  pad(num: number): string {
+    return num < 10 ? '0' + num : num.toString();
+  }
+
+  isPenaltyWarning(): boolean {
+    const now = new Date();
+    // Warning if less than 4 hours remaining (after 8 PM)
+    return now.getHours() >= 20;
   }
 
   loadDashboard(): void {
@@ -418,6 +663,28 @@ export class StudentDashboardComponent implements OnInit {
 
   getInitial(name: string): string {
     return name ? name.charAt(0).toUpperCase() : '?';
+  }
+
+  getNextLevelXP(level: number): number {
+    // Inverse of Level = sqrt(XP / 100) + 1
+    // XP = ((Level - 1) ^ 2) * 100
+    // Next Level XP = (Level ^ 2) * 100
+    return Math.pow(level, 2) * 100;
+  }
+
+  getXPProgress(currentXP: number): number {
+    const level = Math.floor(Math.sqrt(currentXP / 100)) + 1;
+    const currentLevelBaseXP = Math.pow(level - 1, 2) * 100;
+    const nextLevelXP = Math.pow(level, 2) * 100;
+    const levelXP = nextLevelXP - currentLevelBaseXP;
+    const progressXP = currentXP - currentLevelBaseXP;
+    
+    return Math.min(100, Math.max(0, (progressXP / levelXP) * 100));
+  }
+
+  shouldShowParticles(): boolean {
+    const rank = this.data?.student.rank || 'E-Rank';
+    return ['A-Rank', 'S-Rank', 'National Level'].includes(rank);
   }
 
   getProgress(campaign: Campaign): number {

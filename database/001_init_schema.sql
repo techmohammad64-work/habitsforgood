@@ -1,7 +1,7 @@
 
 -- Habits for Good - Initial Database Schema
 -- Version: 001
--- Description: Core tables for MVP
+-- Description: Core tables for MVP with Solo Leveling gamification
 
 -- ============================================
 -- USERS & AUTHENTICATION
@@ -12,8 +12,9 @@ CREATE TABLE users (
   id SERIAL PRIMARY KEY,
   email VARCHAR(255) UNIQUE NOT NULL,
   password_hash VARCHAR(255) NOT NULL,
-  role VARCHAR(20) NOT NULL CHECK (role IN ('student', 'admin', 'sponsor', 'cause')),
+  role VARCHAR(20) NOT NULL CHECK (role IN ('student', 'admin', 'sponsor', 'cause', 'super-admin')),
   email_verified BOOLEAN DEFAULT FALSE,
+  last_login TIMESTAMP,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -27,6 +28,20 @@ CREATE TABLE students (
   avatar_url VARCHAR(500),
   parent_email VARCHAR(255) NOT NULL,
   anonymous_mode BOOLEAN DEFAULT FALSE,
+  -- Solo Leveling Gamification
+  xp INTEGER DEFAULT 0,
+  level INTEGER DEFAULT 1,
+  rank VARCHAR(10) DEFAULT 'E-Rank',
+  title VARCHAR(100),
+  -- Penalty System
+  penalty_count INTEGER DEFAULT 0,
+  active_penalty BOOLEAN DEFAULT FALSE,
+  penalty_due_date DATE,
+  -- Location
+  city VARCHAR(100),
+  state VARCHAR(100),
+  country VARCHAR(100) DEFAULT 'USA',
+  region VARCHAR(100),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -39,6 +54,9 @@ CREATE TABLE admins (
   organization VARCHAR(255),
   role_title VARCHAR(100),
   verified BOOLEAN DEFAULT FALSE,
+  city VARCHAR(100),
+  state VARCHAR(100),
+  country VARCHAR(100) DEFAULT 'USA',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -84,6 +102,14 @@ CREATE TABLE campaigns (
   status VARCHAR(20) DEFAULT 'upcoming' CHECK (status IN ('upcoming', 'active', 'ended', 'completed', 'paused')),
   image_url VARCHAR(500),
   featured BOOLEAN DEFAULT FALSE,
+  -- Solo Leveling Gamification
+  difficulty_level VARCHAR(20) DEFAULT 'E-Rank',
+  xp_reward INTEGER DEFAULT 10,
+  -- Location
+  city VARCHAR(100),
+  state VARCHAR(100),
+  country VARCHAR(100) DEFAULT 'USA',
+  region VARCHAR(100),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -98,6 +124,9 @@ CREATE TABLE habits (
   frequency VARCHAR(20) DEFAULT 'daily' CHECK (frequency IN ('daily', 'weekly')),
   disclaimer TEXT,
   sort_order INTEGER DEFAULT 0,
+  -- AI XP Assessment Fields
+  effort_level VARCHAR(20) DEFAULT 'medium' CHECK (effort_level IN ('low', 'medium', 'high', 'extreme')),
+  base_xp INTEGER DEFAULT 10,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -122,6 +151,7 @@ CREATE TABLE habit_submissions (
   campaign_id INTEGER REFERENCES campaigns(id) ON DELETE CASCADE,
   submission_date DATE NOT NULL,
   rating VARCHAR(20) CHECK (rating IN ('great', 'good', 'okay', 'hard')),
+  xp_earned INTEGER DEFAULT 0,
   submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   UNIQUE(student_id, campaign_id, submission_date)
 );
@@ -199,11 +229,49 @@ CREATE TABLE badges (
   student_id INTEGER REFERENCES students(id) ON DELETE CASCADE,
   badge_type VARCHAR(50) NOT NULL CHECK (badge_type IN (
     '7_day_streak', '30_day_streak', '100_day_streak',
-    'campaign_completer', 'top_3_finisher', 'generous_heart'
+    'campaign_completer', 'top_3_finisher', 'generous_heart',
+    'first_blood', 'daily_quest_master', 'penalty_survivor',
+    'rank_up_d', 'rank_up_c', 'rank_up_b', 'rank_up_a', 'rank_up_s'
   )),
   campaign_id INTEGER REFERENCES campaigns(id) ON DELETE SET NULL,
   earned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   UNIQUE(student_id, badge_type, campaign_id)
+);
+
+-- Titles (Solo Leveling style earned titles)
+CREATE TABLE titles (
+  id SERIAL PRIMARY KEY,
+  student_id INTEGER REFERENCES students(id) ON DELETE CASCADE,
+  title_name VARCHAR(100) NOT NULL,
+  title_description TEXT,
+  rarity VARCHAR(20) DEFAULT 'common' CHECK (rarity IN ('common', 'rare', 'epic', 'legendary')),
+  equipped BOOLEAN DEFAULT FALSE,
+  earned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(student_id, title_name)
+);
+
+-- Random Box Rewards
+CREATE TABLE random_boxes (
+  id SERIAL PRIMARY KEY,
+  student_id INTEGER REFERENCES students(id) ON DELETE CASCADE,
+  box_type VARCHAR(50) NOT NULL CHECK (box_type IN ('daily_quest', 'streak_milestone', 'rank_up', 'special')),
+  reward_type VARCHAR(50) NOT NULL CHECK (reward_type IN ('xp_boost', 'badge', 'title', 'points')),
+  reward_value JSONB NOT NULL,
+  opened BOOLEAN DEFAULT FALSE,
+  earned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  opened_at TIMESTAMP
+);
+
+-- Penalty Quests
+CREATE TABLE penalty_quests (
+  id SERIAL PRIMARY KEY,
+  student_id INTEGER REFERENCES students(id) ON DELETE CASCADE,
+  description TEXT NOT NULL,
+  required_action VARCHAR(255) NOT NULL,
+  due_date DATE NOT NULL,
+  completed BOOLEAN DEFAULT FALSE,
+  completed_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Flash Quests (time-limited bonus challenges)
@@ -235,6 +303,62 @@ CREATE TABLE notifications (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Email notification logs
+CREATE TABLE notification_logs (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  type VARCHAR(50) NOT NULL,
+  recipient_email VARCHAR(255) NOT NULL,
+  subject VARCHAR(255),
+  status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'sent', 'failed')),
+  error_message TEXT,
+  sent_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ============================================
+-- SECURITY & AUDIT
+-- ============================================
+
+-- Audit logs for admin actions
+CREATE TABLE audit_logs (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+  action VARCHAR(100) NOT NULL,
+  entity_type VARCHAR(50),
+  entity_id INTEGER,
+  details JSONB,
+  ip_address VARCHAR(45),
+  user_agent TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ============================================
+-- VIRAL GROWTH
+-- ============================================
+
+-- Referral system
+CREATE TABLE referrals (
+  id SERIAL PRIMARY KEY,
+  referrer_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  referred_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  referral_code VARCHAR(20) NOT NULL,
+  status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'completed', 'rewarded')),
+  bonus_xp_earned INTEGER DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  completed_at TIMESTAMP,
+  UNIQUE(referred_id)
+);
+
+-- Share tracking
+CREATE TABLE share_logs (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  share_type VARCHAR(50) NOT NULL CHECK (share_type IN ('achievement', 'leaderboard', 'campaign', 'invite')),
+  platform VARCHAR(50),
+  shared_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- ============================================
 -- INDEXES
 -- ============================================
@@ -245,6 +369,8 @@ CREATE INDEX idx_users_role ON users(role);
 
 -- Students
 CREATE INDEX idx_students_user_id ON students(user_id);
+CREATE INDEX idx_students_rank ON students(rank);
+CREATE INDEX idx_students_xp ON students(xp);
 
 -- Admins  
 CREATE INDEX idx_admins_user_id ON admins(user_id);
@@ -285,3 +411,94 @@ CREATE INDEX idx_pledges_campaign ON sponsor_pledges(campaign_id);
 -- Notifications
 CREATE INDEX idx_notifications_user ON notifications(user_id);
 CREATE INDEX idx_notifications_read ON notifications(read);
+
+-- Audit logs
+CREATE INDEX idx_audit_logs_user_id ON audit_logs(user_id);
+CREATE INDEX idx_audit_logs_created_at ON audit_logs(created_at);
+CREATE INDEX idx_audit_logs_action ON audit_logs(action);
+
+-- Referrals
+CREATE INDEX idx_referrals_referrer ON referrals(referrer_id);
+CREATE INDEX idx_referrals_code ON referrals(referral_code);
+
+-- ============================================
+-- GAMIFICATION: SOLO LEVELING SYSTEM
+-- ============================================
+
+-- Daily Quests (Complete all habits in a day to get bonus)
+CREATE TABLE daily_quests (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  student_id UUID REFERENCES students(id) ON DELETE CASCADE,
+  campaign_id UUID REFERENCES campaigns(id) ON DELETE CASCADE,
+  quest_date DATE NOT NULL,
+  total_habits INTEGER NOT NULL,
+  completed_habits INTEGER DEFAULT 0,
+  status VARCHAR(20) DEFAULT 'IN_PROGRESS' CHECK (status IN ('IN_PROGRESS', 'COMPLETED', 'FAILED', 'PENALTY_ISSUED')),
+  bonus_xp INTEGER DEFAULT 0,
+  bonus_points INTEGER DEFAULT 0,
+  completed_at TIMESTAMP,
+  deadline TIMESTAMP NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Penalty Quests (Issued when daily quests are failed)
+CREATE TABLE penalty_quests (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  student_id UUID REFERENCES students(id) ON DELETE CASCADE,
+  campaign_id UUID REFERENCES campaigns(id) ON DELETE SET NULL,
+  type VARCHAR(50) NOT NULL CHECK (type IN ('MISSED_DAILY_QUEST', 'STREAK_BREAK', 'INCOMPLETE_CHALLENGE')),
+  description TEXT NOT NULL,
+  penalty_task TEXT NOT NULL,
+  xp_penalty INTEGER DEFAULT 0,
+  status VARCHAR(20) DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'COMPLETED', 'FAILED')),
+  deadline TIMESTAMP NOT NULL,
+  completed_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Rewards (Random boxes and bonuses)
+CREATE TABLE rewards (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  student_id UUID REFERENCES students(id) ON DELETE CASCADE,
+  type VARCHAR(50) NOT NULL CHECK (type IN ('RANDOM_BOX', 'RANK_UP', 'STREAK_MILESTONE', 'QUEST_COMPLETION', 'SPECIAL_EVENT')),
+  rarity VARCHAR(20) NOT NULL CHECK (rarity IN ('COMMON', 'UNCOMMON', 'RARE', 'EPIC', 'LEGENDARY')),
+  name VARCHAR(255) NOT NULL,
+  description TEXT NOT NULL,
+  xp_bonus INTEGER DEFAULT 0,
+  points_bonus INTEGER DEFAULT 0,
+  badge_id UUID,
+  icon_url VARCHAR(500),
+  received_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Achievements (Milestones and special accomplishments)
+CREATE TABLE achievements (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  student_id UUID REFERENCES students(id) ON DELETE CASCADE,
+  category VARCHAR(50) NOT NULL CHECK (category IN ('STREAK', 'LEVEL', 'RANK', 'SOCIAL', 'CAMPAIGN', 'SPECIAL')),
+  title VARCHAR(255) NOT NULL,
+  description TEXT NOT NULL,
+  icon_url VARCHAR(500),
+  xp_reward INTEGER DEFAULT 0,
+  points_reward INTEGER DEFAULT 0,
+  unlocked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Indexes for gamification tables
+CREATE INDEX idx_daily_quests_student ON daily_quests(student_id);
+CREATE INDEX idx_daily_quests_campaign ON daily_quests(campaign_id);
+CREATE INDEX idx_daily_quests_date ON daily_quests(quest_date);
+CREATE INDEX idx_daily_quests_status ON daily_quests(status);
+
+CREATE INDEX idx_penalty_quests_student ON penalty_quests(student_id);
+CREATE INDEX idx_penalty_quests_status ON penalty_quests(status);
+CREATE INDEX idx_penalty_quests_deadline ON penalty_quests(deadline);
+
+CREATE INDEX idx_rewards_student ON rewards(student_id);
+CREATE INDEX idx_rewards_type ON rewards(type);
+CREATE INDEX idx_rewards_rarity ON rewards(rarity);
+
+CREATE INDEX idx_achievements_student ON achievements(student_id);
+CREATE INDEX idx_achievements_category ON achievements(category);

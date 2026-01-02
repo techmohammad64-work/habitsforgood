@@ -14,20 +14,20 @@ import { CampaignService, Campaign } from '@core/services/campaign.service';
         <p class="text-muted">Find a cause you care about and start building healthy habits!</p>
       </header>
 
-      <!-- Filters -->
-      <div class="filters" data-test-id="campaign-filters">
+      <!-- Tabs -->
+      <div class="tabs-container" data-test-id="campaign-tabs">
         <button 
-          class="filter-btn" 
+          class="tab-btn" 
           [class.active]="activeFilter === 'all'"
           (click)="filterCampaigns('all')"
-        >All</button>
+        >All Campaigns</button>
         <button 
-          class="filter-btn" 
+          class="tab-btn" 
           [class.active]="activeFilter === 'active'"
           (click)="filterCampaigns('active')"
         >Active</button>
         <button 
-          class="filter-btn" 
+          class="tab-btn" 
           [class.active]="activeFilter === 'upcoming'"
           (click)="filterCampaigns('upcoming')"
         >Upcoming</button>
@@ -114,35 +114,36 @@ import { CampaignService, Campaign } from '@core/services/campaign.service';
       margin-bottom: var(--spacing-sm);
     }
     
-    .filters {
+    /* Tabs */
+    .tabs-container {
       display: flex;
-      gap: var(--spacing-sm);
       justify-content: center;
+      gap: var(--spacing-lg);
       margin-bottom: var(--spacing-xl);
-      flex-wrap: wrap;
+      border-bottom: 1px solid var(--color-hare);
     }
     
-    .filter-btn {
-      padding: var(--spacing-sm) var(--spacing-lg);
-      background: var(--color-snow);
-      border: 2px solid var(--color-hare);
-      border-radius: var(--radius-pill);
+    .tab-btn {
+      padding: var(--spacing-md) var(--spacing-lg);
+      background: transparent;
+      border: none;
+      border-bottom: 3px solid transparent;
       font-family: var(--font-family);
-      font-size: var(--font-size-sm);
-      font-weight: var(--font-weight-semibold);
+      font-size: var(--font-size-md);
+      font-weight: var(--font-weight-medium);
       color: var(--color-wolf);
       cursor: pointer;
       transition: all var(--transition-fast);
+      margin-bottom: -1px;
       
       &:hover {
-        border-color: var(--color-eel);
         color: var(--color-eel);
       }
       
       &.active {
-        background: var(--color-primary);
-        border-color: var(--color-primary);
-        color: var(--color-snow);
+        color: var(--color-primary);
+        border-bottom-color: var(--color-primary);
+        font-weight: var(--font-weight-bold);
       }
     }
     

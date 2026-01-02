@@ -21,11 +21,11 @@ import { CommonModule } from '@angular/common';
             
             @if (authService.isAuthenticated()) {
               @switch (authService.currentUser()?.role) {
-                @case ('student') {
-                  <a routerLink="/student/dashboard" routerLinkActive="active" class="nav-link" data-test-id="nav-dashboard-link">Dashboard</a>
-                }
                 @case ('admin') {
                   <a routerLink="/admin/dashboard" routerLinkActive="active" class="nav-link" data-test-id="nav-dashboard-link">Dashboard</a>
+                }
+                @case ('super-admin') {
+                  <a routerLink="/super-admin/dashboard" routerLinkActive="active" class="nav-link" data-test-id="nav-dashboard-link">Dashboard</a>
                 }
                 @case ('sponsor') {
                   <a routerLink="/sponsor/dashboard" routerLinkActive="active" class="nav-link" data-test-id="nav-dashboard-link">Dashboard</a>
@@ -326,6 +326,7 @@ export class NavbarComponent {
                 case 'student': return '/student/dashboard';
                 case 'admin': return '/admin/dashboard';
                 case 'sponsor': return '/sponsor/dashboard';
+                case 'super-admin': return '/super-admin/dashboard';
                 default: return '/';
             }
         }

@@ -1,6 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { ApiError } from './error.middleware';
+import { isSuperAdminWhitelisted } from '../config/whitelist';
+import { AuditService } from '../services/audit.service';
+
+const auditService = new AuditService();
 
 export interface AuthRequest extends Request {
     user?: {
@@ -50,6 +54,22 @@ export const roleMiddleware = (...allowedRoles: string[]) => {
     return (req: AuthRequest, _res: Response, next: NextFunction) => {
         if (!req.user) {
             return next(ApiError.unauthorized('Authentication required'));
+        }
+
+        // Special handling for super-admin role
+        if (req.user.role === 'super-admin') {
+            if (!isSuperAdminWhitelisted(req.user.email)) {
+                // Log unauthorized super-admin access attempt
+                auditService.log(
+                    req.user.id,
+                    'UNAUTHORIZED_SUPER_ADMIN_ACCESS',
+                    'user',
+                    req.user.id,
+                    { email: req.user.email, path: req.path },
+                    req
+                );
+                return next(ApiError.forbidden('Super admin access not authorized for this email'));
+            }
         }
 
         if (!allowedRoles.includes(req.user.role)) {

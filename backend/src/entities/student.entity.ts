@@ -38,6 +38,27 @@ export class Student {
     @Column({ type: 'boolean', default: false, name: 'anonymous_mode' })
     anonymousMode!: boolean;
 
+    @Column({ type: 'integer', default: 0 })
+    xp!: number;
+
+    @Column({ type: 'integer', default: 1 })
+    level!: number;
+
+    @Column({ type: 'varchar', length: 10, default: 'E-Rank' })
+    rank!: string;
+
+    @Column({ type: 'varchar', length: 100, nullable: true })
+    city!: string;
+
+    @Column({ type: 'varchar', length: 100, nullable: true })
+    state!: string;
+
+    @Column({ type: 'varchar', length: 100, default: 'USA' })
+    country!: string;
+
+    @Column({ type: 'varchar', length: 100, nullable: true })
+    region!: string;
+
     @CreateDateColumn({ name: 'created_at' })
     createdAt!: Date;
 

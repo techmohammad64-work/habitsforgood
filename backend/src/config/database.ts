@@ -14,6 +14,11 @@ import { SponsorPledge } from '../entities/sponsor-pledge.entity';
 import { Badge } from '../entities/badge.entity';
 import { Notification } from '../entities/notification.entity';
 import { NotificationLog } from '../entities/notification-log.entity';
+import { AuditLog } from '../entities/audit-log.entity';
+import { DailyQuest } from '../entities/daily-quest.entity';
+import { PenaltyQuest } from '../entities/penalty-quest.entity';
+import { Reward } from '../entities/reward.entity';
+import { Achievement } from '../entities/achievement.entity';
 
 export const AppDataSource = new DataSource({
     type: 'postgres',
@@ -40,6 +45,11 @@ export const AppDataSource = new DataSource({
         Badge,
         Notification,
         NotificationLog,
+        AuditLog,
+        DailyQuest,
+        PenaltyQuest,
+        Reward,
+        Achievement,
     ],
     migrations: ['src/migrations/*.ts'],
     subscribers: [],

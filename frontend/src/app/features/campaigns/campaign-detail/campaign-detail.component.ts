@@ -44,68 +44,86 @@ import { Location } from '@angular/common';
         <div class="campaign-content">
           <!-- Main Info -->
           <div class="main-section">
-            <!-- Stats -->
-            <div class="stats-grid" data-test-id="campaign-stats">
-              <div class="stat-card">
-                <span class="stat-icon">👥</span>
-                <span class="stat-value">{{ campaign.enrollmentCount || 0 }}</span>
-                <span class="stat-label">Students Enrolled</span>
-              </div>
-              <div class="stat-card">
-                <span class="stat-icon">⭐</span>
-                <span class="stat-value">{{ campaign.totalPoints || 0 }}</span>
-                <span class="stat-label">Total Points</span>
-              </div>
-              <div class="stat-card">
-                <span class="stat-icon">📅</span>
-                <span class="stat-value">{{ getDaysRemaining() }}</span>
-                <span class="stat-label">Days Left</span>
-              </div>
-              <div class="stat-card">
-                <span class="stat-icon">💰</span>
-                <span class="stat-value">\${{ campaign.goalAmount || 0 }}</span>
-                <span class="stat-label">Goal Amount</span>
-              </div>
+            <!-- Tabs -->
+            <div class="tabs-container">
+              <button 
+                class="tab-btn" 
+                [class.active]="activeTab === 'overview'"
+                (click)="activeTab = 'overview'"
+              >Overview</button>
+              <button 
+                class="tab-btn" 
+                [class.active]="activeTab === 'leaderboard'"
+                (click)="activeTab = 'leaderboard'"
+              >Leaderboard</button>
             </div>
 
-            <!-- Habits -->
-            <section class="habits-section">
-              <h2>Daily Habits</h2>
-              <div class="habits-list" data-test-id="campaign-habits">
-                @for (habit of campaign.habits; track habit.id) {
-                  <div class="habit-item" [attr.data-test-id]="'habit-item-' + habit.id">
-                    <span class="habit-icon">{{ getHabitIcon(habit.icon) }}</span>
-                    <div class="habit-info">
-                      <h4>{{ habit.name }}</h4>
-                      @if (habit.description) {
-                        <p>{{ habit.description }}</p>
-                      }
-                    </div>
-                    <span class="habit-frequency badge badge-secondary">{{ habit.frequency }}</span>
-                  </div>
-                }
-              </div>
-            </section>
-
-            <!-- Leaderboard -->
-            <section class="leaderboard-section">
-              <h2>🏆 Leaderboard</h2>
-              @if (leaderboard.length === 0) {
-                <div class="empty-leaderboard">
-                  <p>No one has earned points yet. Be the first!</p>
+            @if (activeTab === 'overview') {
+              <!-- Stats -->
+              <div class="stats-grid" data-test-id="campaign-stats">
+                <div class="stat-card">
+                  <span class="stat-icon">👥</span>
+                  <span class="stat-value">{{ campaign.enrollmentCount || 0 }}</span>
+                  <span class="stat-label">Students Enrolled</span>
                 </div>
-              } @else {
-                <div class="leaderboard" data-test-id="campaign-leaderboard">
-                  @for (entry of leaderboard; track entry.rank) {
-                    <div class="leaderboard-row" [attr.data-test-id]="'leaderboard-row-' + entry.rank">
-                      <span class="rank" [class]="getRankClass(entry.rank)">{{ entry.rank }}</span>
-                      <span class="name">{{ entry.displayName }}</span>
-                      <span class="streak">🔥 {{ entry.currentStreak }} day streak</span>
+                <div class="stat-card">
+                  <span class="stat-icon">⭐</span>
+                  <span class="stat-value">{{ campaign.totalPoints || 0 }}</span>
+                  <span class="stat-label">Total Points</span>
+                </div>
+                <div class="stat-card">
+                  <span class="stat-icon">📅</span>
+                  <span class="stat-value">{{ getDaysRemaining() }}</span>
+                  <span class="stat-label">Days Left</span>
+                </div>
+                <div class="stat-card">
+                  <span class="stat-icon">💰</span>
+                  <span class="stat-value">\${{ campaign.goalAmount || 0 }}</span>
+                  <span class="stat-label">Goal Amount</span>
+                </div>
+              </div>
+
+              <!-- Habits -->
+              <section class="habits-section">
+                <h2>Daily Habits</h2>
+                <div class="habits-list" data-test-id="campaign-habits">
+                  @for (habit of campaign.habits; track habit.id) {
+                    <div class="habit-item" [attr.data-test-id]="'habit-item-' + habit.id">
+                      <span class="habit-icon">{{ getHabitIcon(habit.icon) }}</span>
+                      <div class="habit-info">
+                        <h4>{{ habit.name }}</h4>
+                        @if (habit.description) {
+                          <p>{{ habit.description }}</p>
+                        }
+                      </div>
+                      <span class="habit-frequency badge badge-secondary">{{ habit.frequency }}</span>
                     </div>
                   }
                 </div>
-              }
-            </section>
+              </section>
+            }
+
+            @if (activeTab === 'leaderboard') {
+              <!-- Leaderboard -->
+              <section class="leaderboard-section">
+                <h2>🏆 Leaderboard</h2>
+                @if (leaderboard.length === 0) {
+                  <div class="empty-leaderboard">
+                    <p>No one has earned points yet. Be the first!</p>
+                  </div>
+                } @else {
+                  <div class="leaderboard" data-test-id="campaign-leaderboard">
+                    @for (entry of leaderboard; track entry.rank) {
+                      <div class="leaderboard-row" [attr.data-test-id]="'leaderboard-row-' + entry.rank">
+                        <span class="rank" [class]="getRankClass(entry.rank)">{{ entry.rank }}</span>
+                        <span class="name">{{ entry.displayName }}</span>
+                        <span class="streak">🔥 {{ entry.currentStreak }} day streak</span>
+                      </div>
+                    }
+                  </div>
+                }
+              </section>
+            }
           </div>
 
           <!-- Sidebar -->
@@ -324,6 +342,38 @@ import { Location } from '@angular/common';
       max-width: 700px;
     }
     
+    /* Tabs */
+    .tabs-container {
+      display: flex;
+      gap: var(--spacing-lg);
+      margin-bottom: var(--spacing-lg);
+      border-bottom: 1px solid var(--color-hare);
+    }
+    
+    .tab-btn {
+      padding: var(--spacing-md) var(--spacing-lg);
+      background: transparent;
+      border: none;
+      border-bottom: 3px solid transparent;
+      font-family: var(--font-family);
+      font-size: var(--font-size-md);
+      font-weight: var(--font-weight-medium);
+      color: var(--color-wolf);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      margin-bottom: -1px;
+      
+      &:hover {
+        color: var(--color-eel);
+      }
+      
+      &.active {
+        color: var(--color-primary);
+        border-bottom-color: var(--color-primary);
+        font-weight: var(--font-weight-bold);
+      }
+    }
+
     .campaign-content {
       display: grid;
       grid-template-columns: 1fr 340px;
@@ -619,6 +669,7 @@ export class CampaignDetailComponent implements OnInit {
   isEnrolled = false;
   pledgeForm: FormGroup;
   pledgeSuccess = false;
+  activeTab: 'overview' | 'leaderboard' = 'overview';
 
   constructor(
     private route: ActivatedRoute,

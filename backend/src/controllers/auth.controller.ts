@@ -208,6 +208,10 @@ export class AuthController {
                 throw ApiError.unauthorized('Invalid credentials');
             }
 
+            // Update last login timestamp
+            user.lastLogin = new Date();
+            await this.userRepository.save(user);
+
             const token = this.generateToken(user);
 
             res.json({

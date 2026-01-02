@@ -57,6 +57,24 @@ export class Campaign {
     @Column({ type: 'boolean', default: false })
     featured!: boolean;
 
+    @Column({ type: 'varchar', length: 20, default: 'E-Rank', name: 'difficulty_level' })
+    difficultyLevel!: string;
+
+    @Column({ type: 'integer', default: 10, name: 'xp_reward' })
+    xpReward!: number;
+
+    @Column({ type: 'varchar', length: 100, nullable: true })
+    city!: string;
+
+    @Column({ type: 'varchar', length: 100, nullable: true })
+    state!: string;
+
+    @Column({ type: 'varchar', length: 100, default: 'USA' })
+    country!: string;
+
+    @Column({ type: 'varchar', length: 100, nullable: true })
+    region!: string;
+
     @CreateDateColumn({ name: 'created_at' })
     createdAt!: Date;
 

@@ -13,6 +13,7 @@ import { AuthRequest } from '../middleware/auth.middleware';
 import { ApiError } from '../middleware/error.middleware';
 import { SchedulerService } from '../services/scheduler.service';
 import { EmailService } from '../services/email.service';
+import { AIService } from '../services/ai.service';
 
 export class CampaignController {
     private campaignRepository = AppDataSource.getRepository(Campaign);
@@ -302,7 +303,7 @@ export class CampaignController {
                 // Streak already exists (user rejoining), reset it
                 streak.currentStreak = 0;
                 streak.longestStreak = 0;
-                streak.lastSubmissionDate = null;
+                streak.lastSubmissionDate = null as any;
                 await this.streakRepository.save(streak);
             } else {
                 // Create new streak
@@ -444,6 +445,9 @@ export class CampaignController {
             const now = new Date();
             const status = start <= now ? 'active' : 'upcoming';
 
+            // AI Analysis for Difficulty and XP
+            const { rank, xp } = AIService.analyzeCampaignDifficulty(title, description || '');
+
             // Create campaign
             const campaign = this.campaignRepository.create({
                 adminId: admin.id,
@@ -455,6 +459,8 @@ export class CampaignController {
                 endDate: end,
                 status,
                 imageUrl,
+                difficultyLevel: rank,
+                xpReward: xp
             });
             await this.campaignRepository.save(campaign);
 

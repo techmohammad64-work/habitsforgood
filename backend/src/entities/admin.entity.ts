@@ -31,6 +31,15 @@ export class Admin {
     @Column({ type: 'boolean', default: false })
     verified!: boolean;
 
+    @Column({ type: 'varchar', length: 100, nullable: true })
+    city!: string;
+
+    @Column({ type: 'varchar', length: 100, nullable: true })
+    state!: string;
+
+    @Column({ type: 'varchar', length: 100, default: 'USA' })
+    country!: string;
+
     @CreateDateColumn({ name: 'created_at' })
     createdAt!: Date;
 
